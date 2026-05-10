@@ -1,0 +1,677 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e8b84b;
+    --accent2: #4ecdc4;
+    --danger: #e74c3c;
+    --success: #2ecc71;
+    --bg: #0f0f23;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --surface3: #0d1b2a;
+    --text: #f0f0f0;
+    --text2: #a0a8b8;
+    --border: rgba(255,255,255,0.08);
+    --gold: #e8b84b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* ===== TELA DE SELEÇÃO ===== */
+  #selector { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; gap: 2rem; background: var(--bg); }
+  .selector-title { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--text2); }
+  .selector-brand { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #e8b84b, #f5d78e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .selector-sub { font-size: 14px; color: var(--text2); margin-top: -1rem; }
+  .selector-cards { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .sel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem 2rem; width: 220px; cursor: pointer; transition: all 0.3s; text-align: center; position: relative; overflow: hidden; }
+  .sel-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s; }
+  .sel-card.business::before { background: linear-gradient(135deg, rgba(232,184,75,0.15), transparent); }
+  .sel-card.control::before { background: linear-gradient(135deg, rgba(78,205,196,0.15), transparent); }
+  .sel-card:hover { transform: translateY(-6px); border-color: var(--accent); }
+  .sel-card:hover::before { opacity: 1; }
+  .sel-icon { font-size: 48px; margin-bottom: 1rem; display: block; }
+  .sel-name { font-size: 22px; font-weight: 800; margin-bottom: 0.4rem; }
+  .sel-name.gold { color: var(--gold); }
+  .sel-name.teal { color: var(--accent2); }
+  .sel-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .sel-badge { display: inline-block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-top: 1rem; }
+  .badge-gold { background: rgba(232,184,75,0.2); color: var(--gold); }
+  .badge-teal { background: rgba(78,205,196,0.2); color: var(--accent2); }
+
+  /* ===== LAYOUT GERAL ===== */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+  #app.active { display: flex; }
+  .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1.5rem 1rem; gap: 0.4rem; flex-shrink: 0; }
+  .logo-wrap { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+  .logo-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; flex-shrink: 0; }
+  .logo-icon.biz { background: linear-gradient(135deg, #e8b84b, #d4a034); color: #1a1a2e; }
+  .logo-icon.ctrl { background: linear-gradient(135deg, #4ecdc4, #2db8ae); color: #1a1a2e; }
+  .logo-text { font-size: 14px; font-weight: 800; letter-spacing: 1px; }
+  .logo-text.gold { color: var(--gold); }
+  .logo-text.teal { color: var(--accent2); }
+  .nav-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.8rem; border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.2s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+  .nav-item.active { background: rgba(232,184,75,0.15); color: var(--gold); }
+  .nav-item.active.teal-nav { background: rgba(78,205,196,0.15); color: var(--accent2); }
+  .nav-item i { font-size: 18px; width: 20px; }
+  .nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+  .nav-section { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); padding: 0.8rem 0.8rem 0.3rem; margin-top: 0.5rem; }
+  .main { flex: 1; overflow-y: auto; padding: 1.5rem; background: var(--bg); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .page-title { font-size: 22px; font-weight: 700; }
+  .topbar-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-gold { background: linear-gradient(135deg, #e8b84b, #d4a034); color: #1a1a2e; }
+  .btn-gold:hover { transform: translateY(-1px); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-teal { background: linear-gradient(135deg, #4ecdc4, #2db8ae); color: #1a1a2e; }
+  .btn-danger { background: rgba(231,76,60,0.15); color: var(--danger); border: 1px solid rgba(231,76,60,0.3); }
+
+  /* ===== CARDS MÉTRICAS ===== */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; }
+  .metric-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px; }
+  .metric-val { font-size: 26px; font-weight: 800; }
+  .metric-val.gold { color: var(--gold); }
+  .metric-val.teal { color: var(--accent2); }
+  .metric-val.success { color: var(--success); }
+  .metric-val.danger { color: var(--danger); }
+  .metric-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  /* ===== TABELAS ===== */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 1rem; }
+  .card-header { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 0.6rem 1rem; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); text-align: left; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  td { padding: 0.75rem 1rem; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .pill-success { background: rgba(46,204,113,0.15); color: var(--success); }
+  .pill-warning { background: rgba(232,184,75,0.15); color: var(--gold); }
+  .pill-danger { background: rgba(231,76,60,0.15); color: var(--danger); }
+  .pill-info { background: rgba(78,205,196,0.15); color: var(--accent2); }
+
+  /* ===== MODAL VENDA ===== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; width: 420px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; color: var(--text2); letter-spacing: 0.5px; }
+  .form-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.9rem; color: var(--text); font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%; }
+  .form-input:focus { border-color: var(--accent); }
+  select.form-input { cursor: pointer; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--surface2); border-radius: 8px; font-size: 13px; }
+  .cart-total { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem; background: rgba(232,184,75,0.1); border-radius: 10px; border: 1px solid rgba(232,184,75,0.3); }
+  .cart-total-label { font-size: 13px; color: var(--text2); }
+  .cart-total-val { font-size: 20px; font-weight: 800; color: var(--gold); }
+  .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.8rem; }
+
+  /* ===== NOTIFICAÇÃO POPUP ===== */
+  .notif-popup { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--surface); border: 1px solid rgba(78,205,196,0.4); border-radius: 16px; padding: 1rem 1.2rem; width: 300px; z-index: 999; transform: translateX(350px); transition: transform 0.4s cubic-bezier(.23,1,.32,1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+  .notif-popup.show { transform: translateX(0); }
+  .notif-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
+  .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: pulse 1.5s infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+  .notif-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent2); font-weight: 600; }
+  .notif-device { margin-left: auto; font-size: 10px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .notif-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .notif-body { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .notif-amount { font-size: 20px; font-weight: 800; color: var(--gold); margin-top: 0.4rem; }
+  .notif-time { font-size: 10px; color: var(--text2); margin-top: 0.4rem; }
+
+  /* ===== PHONE FRAME (JS Control) ===== */
+  .phone-wrap { display: flex; justify-content: center; padding: 1rem 0 2rem; }
+  .phone-frame { width: 320px; background: #0a0a14; border: 2px solid rgba(78,205,196,0.3); border-radius: 40px; padding: 1.5rem 0.8rem; position: relative; box-shadow: 0 0 40px rgba(78,205,196,0.1); }
+  .phone-notch { width: 100px; height: 18px; background: #0a0a14; border-radius: 0 0 14px 14px; margin: 0 auto 1rem; border: 1px solid rgba(78,205,196,0.2); border-top: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .phone-notch-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(78,205,196,0.6); }
+  .phone-screen { background: var(--bg); border-radius: 28px; overflow: hidden; min-height: 560px; }
+  .phone-status { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 1rem; font-size: 10px; color: var(--text2); }
+  .phone-app-header { background: var(--surface); padding: 0.8rem 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .phone-app-title { font-size: 13px; font-weight: 800; color: var(--accent2); display: flex; align-items: center; gap: 6px; }
+  .phone-body { padding: 0.8rem; }
+  .phone-metric { background: var(--surface); border-radius: 12px; padding: 1rem; margin-bottom: 0.7rem; display: flex; justify-content: space-between; align-items: center; }
+  .phone-metric-label { font-size: 11px; color: var(--text2); }
+  .phone-metric-val { font-size: 18px; font-weight: 800; }
+  .phone-notif-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+  .phone-notif-item { background: var(--surface); border-left: 3px solid var(--accent2); border-radius: 0 10px 10px 0; padding: 0.7rem 0.8rem; font-size: 11px; }
+  .phone-notif-name { font-weight: 600; margin-bottom: 2px; color: var(--text); }
+  .phone-notif-detail { color: var(--text2); font-size: 10px; }
+  .phone-notif-amount { color: var(--gold); font-weight: 700; font-size: 13px; float: right; }
+  .new-badge { background: var(--accent2); color: #0a0a14; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; letter-spacing: 0.5px; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.5} }
+  .phone-section { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin: 0.8rem 0 0.4rem; }
+
+  /* ===== ESTOQUE ===== */
+  .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.8rem; }
+  .stock-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.2s; }
+  .stock-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .stock-card-name { font-size: 13px; font-weight: 600; margin-bottom: 0.3rem; }
+  .stock-card-qty { font-size: 22px; font-weight: 800; margin-bottom: 0.3rem; }
+  .stock-card-price { font-size: 11px; color: var(--text2); }
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* ===== FUNCIONÁRIOS ===== */
+  .employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .emp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; text-align: center; }
+  .emp-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 0.8rem; }
+  .emp-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .emp-role { font-size: 11px; color: var(--text2); }
+  .emp-stat { font-size: 12px; margin-top: 0.6rem; color: var(--text2); }
+  .emp-stat span { color: var(--gold); font-weight: 600; }
+
+  /* ===== CLIENTES / FIADO ===== */
+  .fiado-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: var(--surface2); border-radius: 10px; margin-bottom: 0.5rem; }
+  .fiado-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .fiado-name { font-size: 13px; font-weight: 600; }
+  .fiado-debt { font-size: 12px; color: var(--danger); }
+  .fiado-amount { margin-left: auto; font-size: 15px; font-weight: 800; color: var(--danger); }
+  .fiado-pay { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.3); font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border-radius: 20px; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  /* ===== BACK BUTTON ===== */
+  .back-btn { position: fixed; top: 1rem; left: 1rem; z-index: 50; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--text2); cursor: pointer; display: none; align-items: center; gap: 6px; }
+  .back-btn.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- SELEÇÃO DE SISTEMA -->
+<div id="selector">
+  <p class="selector-title">Sistema de Gestão</p>
+  <p class="selector-brand">JS GROUP</p>
+  <p class="selector-sub">Escolha o sistema para acessar</p>
+  <div class="selector-cards">
+    <div class="sel-card business" onclick="openSystem('business')">
+      <span class="sel-icon">🏪</span>
+      <p class="sel-name gold">JS Business</p>
+      <p class="sel-desc">Sistema da loja — vendas, estoque, funcionários e clientes</p>
+      <span class="sel-badge badge-gold">COMPUTADOR DA LOJA</span>
+    </div>
+    <div class="sel-card control" onclick="openSystem('control')">
+      <span class="sel-icon">📱</span>
+      <p class="sel-name teal">JS Control</p>
+      <p class="sel-desc">App do patrão — monitore tudo em tempo real pelo celular</p>
+      <span class="sel-badge badge-teal">CELULAR DO PATRÃO</span>
+    </div>
+  </div>
+</div>
+
+<!-- BOTÃO VOLTAR -->
+<button class="back-btn" id="backBtn" onclick="goBack()">
+  <i class="ti ti-arrow-left"></i> Menu principal
+</button>
+
+<!-- ===== JS BUSINESS ===== -->
+<div id="app-business" id="app">
+  <div class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo-icon biz">JS</div>
+      <div>
+        <div class="logo-text gold">JS BUSINESS</div>
+        <div style="font-size:10px;color:var(--text2)">Sistema da Loja</div>
+      </div>
+    </div>
+    <button class="nav-item active" onclick="showSection('dashboard-biz','this',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button class="nav-item" onclick="showSection('vendas-biz','this',this)"><i class="ti ti-shopping-cart"></i>Nova Venda</button>
+    <button class="nav-item" onclick="showSection('historico-biz','this',this)"><i class="ti ti-receipt"></i>Histórico</button>
+    <p class="nav-section">Gestão</p>
+    <button class="nav-item" onclick="showSection('estoque-biz','this',this)"><i class="ti ti-box"></i>Estoque</button>
+    <button class="nav-item" onclick="showSection('funcionarios-biz','this',this)"><i class="ti ti-users"></i>Funcionários</button>
+    <button class="nav-item" onclick="showSection('fiado-biz','this',this)"><i class="ti ti-coin"></i>Fiado / Clientes</button>
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block"></span>
+        Online — sincronizado
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div id="dashboard-biz" class="section-biz">
+      <div class="topbar">
+        <div>
+          <p style="font-size:12px;color:var(--text2)">Bem-vindo de volta 👋</p>
+          <p class="page-title">Dashboard — Hoje</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-gold" onclick="openModalVenda()"><i class="ti ti-plus"></i>Nova Venda</button>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <p class="metric-label"><i class="ti ti-trending-up"></i> Vendas hoje</p>
+          <p class="metric-val gold" id="metric-vendas-hoje">Kz 47.800</p>
+          <p class="metric-sub">↑ 12% vs ontem</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label"><i class="ti ti-receipt"></i> Transações</p>
+          <p class="metric-val teal" id="metric-transacoes">14</p>
+          <p class="metric-sub">Última há 8 min</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label"><i class="ti ti-box"></i> Itens críticos</p>
+          <p class="metric-val danger" id="metric-criticos">3</p>
+          <p class="metric-sub">Estoque baixo</p>
+        </div>
+        <div class="metric">
+          <p class="metric-label"><i class="ti ti-coin"></i> Fiado pendente</p>
+          <p class="metric-val" style="color:#e67e22" id="metric-fiado">Kz 18.500</p>
+          <p class="metric-sub">5 clientes</p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="ti ti-clock" style="color:var(--gold)"></i>Últimas Vendas</span></div>
+          <table>
+            <thead><tr><th>Produto</th><th>Qtd</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="ultimas-vendas-tbody">
+              <tr><td>Arroz 5kg</td><td>2</td><td>Kz 7.200</td><td><span class="pill pill-success">Pago</span></td></tr>
+              <tr><td>Óleo Girassol</td><td>1</td><td>Kz 2.500</td><td><span class="pill pill-success">Pago</span></td></tr>
+              <tr><td>Açúcar 2kg</td><td>3</td><td>Kz 3.900</td><td><span class="pill pill-warning">Fiado</span></td></tr>
+              <tr><td>Sabão Omo 1kg</td><td>2</td><td>Kz 4.600</td><td><span class="pill pill-success">Pago</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="ti ti-alert-triangle" style="color:var(--danger)"></i>Estoque Crítico</span></div>
+          <table>
+            <thead><tr><th>Produto</th><th>Qtd</th><th>Mínimo</th></tr></thead>
+            <tbody>
+              <tr><td>Leite Condensado</td><td style="color:var(--danger)"><b>2</b></td><td>10</td></tr>
+              <tr><td>Farinha de Trigo</td><td style="color:var(--danger)"><b>3</b></td><td>15</td></tr>
+              <tr><td>Massa Esparguete</td><td style="color:var(--gold)"><b>7</b></td><td>10</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVA VENDA -->
+    <div id="vendas-biz" class="section-biz" style="display:none">
+      <div class="topbar"><p class="page-title">Registar Venda</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:1rem">
+        <div>
+          <div class="card" style="padding:1rem">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:0.8rem;letter-spacing:1px;text-transform:uppercase">Adicionar produto</p>
+            <div class="form-group">
+              <label class="form-label">Produto</label>
+              <select class="form-input" id="prod-select">
+                <option value="">Selecione...</option>
+                <option value="Arroz 5kg|3600">Arroz 5kg — Kz 3.600</option>
+                <option value="Óleo Girassol 1L|2500">Óleo Girassol 1L — Kz 2.500</option>
+                <option value="Açúcar 2kg|1300">Açúcar 2kg — Kz 1.300</option>
+                <option value="Sabão Omo 1kg|2300">Sabão Omo 1kg — Kz 2.300</option>
+                <option value="Leite Condensado|800">Leite Condensado — Kz 800</option>
+                <option value="Farinha de Trigo 1kg|900">Farinha de Trigo 1kg — Kz 900</option>
+                <option value="Coca-Cola 2L|1200">Coca-Cola 2L — Kz 1.200</option>
+                <option value="Frango 1kg|4500">Frango 1kg — Kz 4.500</option>
+              </select>
+            </div>
+            <div class="form-row" style="margin-top:0.8rem">
+              <div class="form-group">
+                <label class="form-label">Quantidade</label>
+                <input type="number" class="form-input" id="prod-qty" value="1" min="1">
+              </div>
+              <div style="display:flex;align-items:flex-end">
+                <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="addToCart()"><i class="ti ti-plus"></i>Adicionar</button>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:0.8rem;letter-spacing:1px;text-transform:uppercase">Cliente</p>
+            <div class="form-group">
+              <label class="form-label">Nome (opcional)</label>
+              <input type="text" class="form-input" id="client-name" placeholder="Nome do cliente...">
+            </div>
+            <div class="form-group" style="margin-top:0.8rem">
+              <label class="form-label">Forma de pagamento</label>
+              <select class="form-input" id="pagamento">
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Transferência">Transferência</option>
+                <option value="Fiado">Fiado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:1rem;display:flex;flex-direction:column">
+          <p style="font-size:12px;color:var(--text2);margin-bottom:0.8rem;letter-spacing:1px;text-transform:uppercase">Carrinho</p>
+          <div id="cart-items" style="flex:1;display:flex;flex-direction:column;gap:0.5rem;min-height:120px"></div>
+          <div style="border-top:1px solid var(--border);padding-top:0.8rem;margin-top:0.8rem">
+            <div class="cart-total">
+              <span class="cart-total-label">Total</span>
+              <span class="cart-total-val" id="cart-total">Kz 0</span>
+            </div>
+            <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:0.8rem;padding:0.8rem" onclick="finalizarVenda()"><i class="ti ti-check"></i>Finalizar Venda</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="historico-biz" class="section-biz" style="display:none">
+      <div class="topbar"><p class="page-title">Histórico de Vendas</p></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><i class="ti ti-receipt" style="color:var(--gold)"></i>Todas as vendas</span></div>
+        <table>
+          <thead><tr><th>#</th><th>Data/Hora</th><th>Produtos</th><th>Cliente</th><th>Pagamento</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody id="historico-tbody">
+            <tr><td style="color:var(--text2)">#0014</td><td>10/05 14:32</td><td>Arroz 5kg ×2</td><td>João Silva</td><td>Dinheiro</td><td style="color:var(--gold)">Kz 7.200</td><td><span class="pill pill-success">Pago</span></td></tr>
+            <tr><td style="color:var(--text2)">#0013</td><td>10/05 13:15</td><td>Óleo ×1</td><td>—</td><td>Transferência</td><td style="color:var(--gold)">Kz 2.500</td><td><span class="pill pill-success">Pago</span></td></tr>
+            <tr><td style="color:var(--text2)">#0012</td><td>10/05 11:50</td><td>Açúcar ×3</td><td>Maria Costa</td><td>Fiado</td><td style="color:var(--gold)">Kz 3.900</td><td><span class="pill pill-warning">Fiado</span></td></tr>
+            <tr><td style="color:var(--text2)">#0011</td><td>10/05 10:20</td><td>Sabão ×2</td><td>—</td><td>Dinheiro</td><td style="color:var(--gold)">Kz 4.600</td><td><span class="pill pill-success">Pago</span></td></tr>
+            <tr><td style="color:var(--text2)">#0010</td><td>10/05 09:05</td><td>Frango 1kg ×1</td><td>Ana Mendes</td><td>Dinheiro</td><td style="color:var(--gold)">Kz 4.500</td><td><span class="pill pill-success">Pago</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ESTOQUE -->
+    <div id="estoque-biz" class="section-biz" style="display:none">
+      <div class="topbar"><p class="page-title">Gestão de Estoque</p><button class="btn btn-gold" onclick="alert('Adicionar produto ao estoque')"><i class="ti ti-plus"></i>Novo Produto</button></div>
+      <div class="stock-grid" id="stock-grid"></div>
+    </div>
+
+    <!-- FUNCIONÁRIOS -->
+    <div id="funcionarios-biz" class="section-biz" style="display:none">
+      <div class="topbar"><p class="page-title">Funcionários</p><button class="btn btn-gold"><i class="ti ti-plus"></i>Novo Funcionário</button></div>
+      <div class="employee-grid">
+        <div class="emp-card">
+          <div class="emp-avatar" style="background:rgba(232,184,75,0.2);color:var(--gold)">AA</div>
+          <p class="emp-name">Ana Antunes</p><p class="emp-role">Caixeira Principal</p>
+          <p class="emp-stat">Vendas hoje: <span>Kz 32.000</span></p>
+          <span class="pill pill-success" style="margin-top:8px">Activa</span>
+        </div>
+        <div class="emp-card">
+          <div class="emp-avatar" style="background:rgba(78,205,196,0.2);color:var(--accent2)">PM</div>
+          <p class="emp-name">Paulo Mateus</p><p class="emp-role">Repositor</p>
+          <p class="emp-stat">Entradas hoje: <span>4 itens</span></p>
+          <span class="pill pill-success" style="margin-top:8px">Activo</span>
+        </div>
+        <div class="emp-card">
+          <div class="emp-avatar" style="background:rgba(231,76,60,0.2);color:var(--danger)">LN</div>
+          <p class="emp-name">Luísa Neto</p><p class="emp-role">Atendimento</p>
+          <p class="emp-stat">Vendas hoje: <span>Kz 15.800</span></p>
+          <span class="pill pill-warning" style="margin-top:8px">Folga</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIADO -->
+    <div id="fiado-biz" class="section-biz" style="display:none">
+      <div class="topbar"><p class="page-title">Fiado & Clientes</p><button class="btn btn-outline"><i class="ti ti-plus"></i>Novo Cliente</button></div>
+      <div class="metrics" style="margin-bottom:1rem">
+        <div class="metric"><p class="metric-label">Total em fiado</p><p class="metric-val danger">Kz 18.500</p></div>
+        <div class="metric"><p class="metric-label">Clientes com dívida</p><p class="metric-val" style="color:#e67e22">5</p></div>
+        <div class="metric"><p class="metric-label">Recebido hoje</p><p class="metric-val success">Kz 4.200</p></div>
+      </div>
+      <div id="fiado-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JS CONTROL ===== -->
+<div id="app-control" style="display:none;background:var(--bg);min-height:100vh;padding:1.5rem">
+  <div class="topbar">
+    <div>
+      <p style="font-size:12px;color:var(--text2)">App móvel do patrão</p>
+      <p class="page-title" style="color:var(--accent2)">JS Control</p>
+    </div>
+    <button class="btn btn-teal" onclick="simulateNotif()"><i class="ti ti-bell"></i>Simular Notificação</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+    <div class="metric"><p class="metric-label"><i class="ti ti-trending-up"></i>Vendas hoje</p><p class="metric-val gold" id="ctrl-vendas">Kz 47.800</p><p class="metric-sub">↑ 12% vs ontem</p></div>
+    <div class="metric"><p class="metric-label"><i class="ti ti-receipt"></i>Transações</p><p class="metric-val teal" id="ctrl-trans">14</p><p class="metric-sub">Última há 8 min</p></div>
+    <div class="metric"><p class="metric-label"><i class="ti ti-box"></i>Estoque crítico</p><p class="metric-val danger">3 itens</p><p class="metric-sub">Ação necessária</p></div>
+    <div class="metric"><p class="metric-label"><i class="ti ti-coin"></i>Fiado total</p><p class="metric-val" style="color:#e67e22">Kz 18.500</p><p class="metric-sub">5 clientes</p></div>
+  </div>
+  <div class="phone-wrap">
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="phone-notch-dot"></div><div class="phone-notch-dot"></div></div>
+      <div class="phone-screen">
+        <div class="phone-status"><span>09:41</span><span>📶 🔋</span></div>
+        <div class="phone-app-header">
+          <div class="phone-app-title"><i class="ti ti-device-mobile" style="font-size:14px"></i>JS Control</div>
+          <div style="font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block"></span>Ao vivo</div>
+        </div>
+        <div class="phone-body">
+          <div class="phone-metric"><div><div class="phone-metric-label">Vendas hoje</div><div class="phone-metric-val gold" id="phone-vendas">Kz 47.800</div></div><i class="ti ti-trending-up" style="color:var(--success);font-size:22px"></i></div>
+          <div class="phone-metric"><div><div class="phone-metric-label">Transações</div><div class="phone-metric-val teal" id="phone-trans">14</div></div><i class="ti ti-receipt" style="color:var(--accent2);font-size:22px"></i></div>
+          <p class="phone-section">Notificações de vendas</p>
+          <div class="phone-notif-list" id="phone-notif-list">
+            <div class="phone-notif-item"><span class="phone-notif-amount">Kz 7.200</span><div class="phone-notif-name">João Silva</div><div class="phone-notif-detail">Arroz 5kg ×2 · Dinheiro · 14:32</div></div>
+            <div class="phone-notif-item"><span class="phone-notif-amount">Kz 2.500</span><div class="phone-notif-name">Cliente Avulso</div><div class="phone-notif-detail">Óleo Girassol ×1 · Transferência · 13:15</div></div>
+            <div class="phone-notif-item" style="border-left-color:var(--gold)"><span class="phone-notif-amount" style="color:var(--gold)">Kz 3.900</span><div class="phone-notif-name">Maria Costa <span style="color:var(--gold);font-size:9px">FIADO</span></div><div class="phone-notif-detail">Açúcar 2kg ×3 · 11:50</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:11px;color:var(--text2);margin-top:-1rem">↑ Simulação do ecrã do celular do patrão</p>
+</div>
+
+<!-- NOTIFICAÇÃO POPUP -->
+<div class="notif-popup" id="notif-popup">
+  <div class="notif-header">
+    <div class="notif-dot"></div>
+    <span class="notif-label">JS Control</span>
+    <span class="notif-device"><i class="ti ti-device-mobile" style="font-size:12px"></i>Patrão</span>
+  </div>
+  <div class="notif-title" id="np-title">Nova venda registada!</div>
+  <div class="notif-body" id="np-body">Arroz 5kg ×2 — João Silva</div>
+  <div class="notif-amount" id="np-amount">Kz 7.200</div>
+  <div class="notif-time" id="np-time">Agora mesmo · Dinheiro</div>
+</div>
+
+<script>
+// ===== DADOS =====
+let cart = [];
+let saleCounter = 15;
+let totalVendas = 47800;
+let totalTrans = 14;
+
+const stock = [
+  {name:'Arroz 5kg',qty:42,min:10,price:3600,color:'teal'},
+  {name:'Óleo Girassol 1L',qty:28,min:10,price:2500,color:'gold'},
+  {name:'Açúcar 2kg',qty:15,min:10,price:1300,color:'gold'},
+  {name:'Sabão Omo 1kg',qty:19,min:10,price:2300,color:'teal'},
+  {name:'Leite Condensado',qty:2,min:10,price:800,color:'danger'},
+  {name:'Farinha de Trigo 1kg',qty:3,min:15,price:900,color:'danger'},
+  {name:'Massa Esparguete',qty:7,min:10,price:750,color:'warning'},
+  {name:'Coca-Cola 2L',qty:24,min:8,price:1200,color:'teal'},
+  {name:'Frango 1kg',qty:11,min:5,price:4500,color:'teal'},
+];
+
+const fiadoData = [
+  {initials:'JS',name:'João Silva',debt:'Deve desde 05/05',amount:4500,color:'rgba(232,184,75,0.2)',tc:'var(--gold)'},
+  {initials:'MC',name:'Maria Costa',debt:'Deve desde 08/05',amount:3900,color:'rgba(231,76,60,0.2)',tc:'var(--danger)'},
+  {initials:'AN',name:'Ana Neto',debt:'Deve desde 03/05',amount:5200,color:'rgba(78,205,196,0.2)',tc:'var(--accent2)'},
+  {initials:'PL',name:'Pedro Lopes',debt:'Deve desde 07/05',amount:2100,color:'rgba(232,184,75,0.2)',tc:'var(--gold)'},
+  {initials:'CF',name:'Carla Freitas',debt:'Deve desde 09/05',amount:2800,color:'rgba(78,205,196,0.2)',tc:'var(--accent2)'},
+];
+
+// ===== NAVEGAÇÃO =====
+function openSystem(sys) {
+  document.getElementById('selector').style.display = 'none';
+  document.getElementById('backBtn').classList.add('visible');
+  if(sys === 'business') {
+    document.getElementById('app-business').style.display = 'flex';
+    renderStock(); renderFiado();
+  } else {
+    document.getElementById('app-control').style.display = 'block';
+  }
+}
+function goBack() {
+  document.getElementById('selector').style.display = 'flex';
+  document.getElementById('app-business').style.display = 'none';
+  document.getElementById('app-control').style.display = 'none';
+  document.getElementById('backBtn').classList.remove('visible');
+}
+
+// ===== SEÇÕES =====
+function showSection(id, _, btn) {
+  document.querySelectorAll('.section-biz').forEach(s => s.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  btn.classList.add('active');
+  if(id === 'estoque-biz') renderStock();
+}
+
+// ===== ESTOQUE =====
+function renderStock() {
+  const g = document.getElementById('stock-grid');
+  g.innerHTML = stock.map(p => {
+    const pct = Math.min(100, Math.round(p.qty / (p.min * 3) * 100));
+    const col = p.qty <= p.min ? 'var(--danger)' : p.qty <= p.min*1.5 ? 'var(--gold)' : 'var(--success)';
+    const cls = p.qty <= p.min ? 'danger' : p.qty <= p.min*1.5 ? 'warning' : 'success';
+    return `<div class="stock-card">
+      <div class="stock-card-name">${p.name}</div>
+      <div class="stock-card-qty" style="color:${col}">${p.qty}</div>
+      <div class="stock-card-price">Kz ${p.price.toLocaleString()} / un</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div style="margin-top:4px;font-size:10px;color:${col}">${p.qty <= p.min ? '⚠ Estoque crítico' : p.qty <= p.min*1.5 ? '⚡ Estoque baixo' : '✓ OK'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== FIADO =====
+function renderFiado() {
+  const f = document.getElementById('fiado-list');
+  f.innerHTML = fiadoData.map(c => `
+    <div class="fiado-row">
+      <div class="fiado-avatar" style="background:${c.color};color:${c.tc}">${c.initials}</div>
+      <div><div class="fiado-name">${c.name}</div><div class="fiado-debt">${c.debt}</div></div>
+      <span class="fiado-amount">Kz ${c.amount.toLocaleString()}</span>
+      <button class="fiado-pay" onclick="payFiado(this,'${c.name}',${c.amount})"><i class="ti ti-check"></i> Pago</button>
+    </div>`).join('');
+}
+function payFiado(btn, name, amount) {
+  btn.closest('.fiado-row').style.opacity='0.4';
+  btn.textContent='✓ Registado';
+  btn.disabled=true;
+}
+
+// ===== CARRINHO =====
+function addToCart() {
+  const sel = document.getElementById('prod-select');
+  const qty = parseInt(document.getElementById('prod-qty').value) || 1;
+  if(!sel.value) return;
+  const [name, price] = sel.value.split('|');
+  const existing = cart.find(i => i.name === name);
+  if(existing) existing.qty += qty;
+  else cart.push({name, price: parseInt(price), qty});
+  renderCart();
+}
+function renderCart() {
+  const el = document.getElementById('cart-items');
+  if(!cart.length) { el.innerHTML = '<div style="color:var(--text2);font-size:13px;text-align:center;padding:2rem 0">Carrinho vazio</div>'; document.getElementById('cart-total').textContent = 'Kz 0'; return; }
+  el.innerHTML = cart.map((i,idx) => `<div class="cart-item"><span>${i.name} ×${i.qty}</span><span style="color:var(--gold)">Kz ${(i.price*i.qty).toLocaleString()}</span><button onclick="removeCart(${idx})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px">×</button></div>`).join('');
+  const total = cart.reduce((s,i) => s + i.price*i.qty, 0);
+  document.getElementById('cart-total').textContent = 'Kz ' + total.toLocaleString();
+}
+function removeCart(idx) { cart.splice(idx,1); renderCart(); }
+
+function finalizarVenda() {
+  if(!cart.length) { alert('Adicione produtos ao carrinho!'); return; }
+  const total = cart.reduce((s,i) => s + i.price*i.qty, 0);
+  const client = document.getElementById('client-name').value || 'Cliente Avulso';
+  const pag = document.getElementById('pagamento').value;
+  const prods = cart.map(i => `${i.name} ×${i.qty}`).join(', ');
+  const now = new Date();
+  const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+
+  // Adiciona ao histórico
+  saleCounter++;
+  totalVendas += total;
+  totalTrans++;
+  const isPaid = pag !== 'Fiado';
+  const tbody = document.getElementById('historico-tbody');
+  const row = document.createElement('tr');
+  row.innerHTML = `<td style="color:var(--text2)">#${String(saleCounter).padStart(4,'0')}</td><td>Agora ${time}</td><td>${prods}</td><td>${client}</td><td>${pag}</td><td style="color:var(--gold)">Kz ${total.toLocaleString()}</td><td><span class="pill ${isPaid?'pill-success':'pill-warning'}">${isPaid?'Pago':'Fiado'}</span></td>`;
+  tbody.insertBefore(row, tbody.firstChild);
+
+  // Atualiza dashboard
+  document.getElementById('metric-vendas-hoje').textContent = 'Kz ' + totalVendas.toLocaleString();
+  document.getElementById('metric-transacoes').textContent = totalTrans;
+  const ltbody = document.getElementById('ultimas-vendas-tbody');
+  const lr = document.createElement('tr');
+  lr.innerHTML = `<td>${prods}</td><td>${cart.reduce((s,i)=>s+i.qty,0)}</td><td>Kz ${total.toLocaleString()}</td><td><span class="pill ${isPaid?'pill-success':'pill-warning'}">${isPaid?'Pago':'Fiado'}</span></td>`;
+  ltbody.insertBefore(lr, ltbody.firstChild);
+  if(ltbody.children.length > 5) ltbody.removeChild(ltbody.lastChild);
+
+  // Atualiza JS Control
+  document.getElementById('ctrl-vendas').textContent = 'Kz ' + totalVendas.toLocaleString();
+  document.getElementById('ctrl-trans').textContent = totalTrans;
+  document.getElementById('phone-vendas').textContent = 'Kz ' + totalVendas.toLocaleString();
+  document.getElementById('phone-trans').textContent = totalTrans;
+
+  // Notificação no "celular"
+  const plist = document.getElementById('phone-notif-list');
+  const pn = document.createElement('div');
+  pn.className = 'phone-notif-item';
+  if(!isPaid) pn.style.borderLeftColor = 'var(--gold)';
+  pn.innerHTML = `<span class="phone-notif-amount" style="${!isPaid?'color:var(--gold)':''} ">Kz ${total.toLocaleString()}</span><div class="phone-notif-name">${client}${!isPaid?' <span style="color:var(--gold);font-size:9px">FIADO</span>':''} <span class="new-badge">NOVO</span></div><div class="phone-notif-detail">${prods} · ${pag} · ${time}</div>`;
+  plist.insertBefore(pn, plist.firstChild);
+
+  // Popup notificação
+  showNotif(client, prods, total, pag, isPaid);
+
+  cart = [];
+  document.getElementById('client-name').value = '';
+  renderCart();
+}
+
+function showNotif(client, prods, total, pag, isPaid) {
+  document.getElementById('np-title').textContent = isPaid ? '🛒 Nova venda registada!' : '⚠️ Venda no fiado!';
+  document.getElementById('np-body').textContent = `${prods} — ${client}`;
+  document.getElementById('np-amount').textContent = 'Kz ' + total.toLocaleString();
+  document.getElementById('np-time').textContent = 'Agora mesmo · ' + pag;
+  const p = document.getElementById('notif-popup');
+  p.classList.add('show');
+  setTimeout(() => p.classList.remove('show'), 5000);
+}
+
+function simulateNotif() {
+  const samples = [
+    {client:'Dona Maria', prod:'Arroz 5kg ×2', total:7200, pag:'Dinheiro', paid:true},
+    {client:'Sr. António', prod:'Óleo Girassol ×3', total:7500, pag:'Transferência', paid:true},
+    {client:'Ana Costa', prod:'Açúcar 2kg ×1', total:1300, pag:'Fiado', paid:false},
+    {client:'João Tavares', prod:'Frango 1kg ×2', total:9000, pag:'Dinheiro', paid:true},
+  ];
+  const s = samples[Math.floor(Math.random()*samples.length)];
+  totalVendas += s.total; totalTrans++;
+  document.getElementById('ctrl-vendas').textContent = 'Kz ' + totalVendas.toLocaleString();
+  document.getElementById('ctrl-trans').textContent = totalTrans;
+  document.getElementById('phone-vendas').textContent = 'Kz ' + totalVendas.toLocaleString();
+  document.getElementById('phone-trans').textContent = totalTrans;
+  const plist = document.getElementById('phone-notif-list');
+  const pn = document.createElement('div');
+  pn.className = 'phone-notif-item';
+  if(!s.paid) pn.style.borderLeftColor='var(--gold)';
+  const now = new Date();
+  const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  pn.innerHTML = `<span class="phone-notif-amount" style="${!s.paid?'color:var(--gold)':''}">Kz ${s.total.toLocaleString()}</span><div class="phone-notif-name">${s.client} <span class="new-badge">NOVO</span></div><div class="phone-notif-detail">${s.prod} · ${s.pag} · ${time}</div>`;
+  plist.insertBefore(pn, plist.firstChild);
+  showNotif(s.client, s.prod, s.total, s.pag, s.paid);
+}
+
+renderCart();
+</script>
+</body>
+</html>
